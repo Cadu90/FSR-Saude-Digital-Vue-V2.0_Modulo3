@@ -1,0 +1,12 @@
+digraph A {
+  graph [rankdir=LR, nodesep=0.7, ranksep=1.0, bgcolor="white", pad=0.25];
+  node [shape=box, style="rounded,filled", fontname="Arial", fontsize=12, margin="0.18,0.12", color="#334155"];
+  edge [color="#64748b", penwidth=1.5, arrowsize=0.8];
+  browser [label="Navegador\nVue.js 3 + HTML5 + CSS3", fillcolor="#eef4ff"];
+  api [label="Servidor Node.js\nHTTP + API REST demonstrativa", fillcolor="#e8f7ee"];
+  db [label="SQLite\nModelo relacional + SQL", fillcolor="#f7f7f7"];
+  sql [label="Scripts SQL\nschema.sql • seed.sql • crud.sql", fillcolor="#fff7e6"];
+  browser -> api [label="JSON / HTTP", fontname="Arial", fontsize=10];
+  api -> db [label="INSERT / SELECT / UPDATE", fontname="Arial", fontsize=10];
+  sql -> db [label="DDL / DML", fontname="Arial", fontsize=10];
+}

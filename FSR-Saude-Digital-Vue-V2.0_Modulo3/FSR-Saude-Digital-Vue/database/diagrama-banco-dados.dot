@@ -1,0 +1,92 @@
+digraph G {
+  graph [rankdir=LR, splines=ortho, nodesep=0.55, ranksep=0.8, bgcolor="white", pad=0.2];
+  node [shape=plain, fontname="Arial"];
+  edge [color="#64748b", arrowsize=0.7, penwidth=1.2];
+
+  usuarios [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#eef4ff">
+      <TR><TD><B>usuarios</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">PK id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">nome</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">perfil</FONT></TD></TR>
+    </TABLE>>];
+
+  dependentes [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#f7f7f7">
+      <TR><TD><B>dependentes</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">PK id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">FK usuario_id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">nome / parentesco</FONT></TD></TR>
+    </TABLE>>];
+
+  servicos [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#f7f7f7">
+      <TR><TD><B>servicos</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">PK id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">nome</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">descricao / ativo</FONT></TD></TR>
+    </TABLE>>];
+
+  unidades [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#f7f7f7">
+      <TR><TD><B>unidades</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">PK id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">nome</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">endereco / tipo</FONT></TD></TR>
+    </TABLE>>];
+
+  convenios [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#f7f7f7">
+      <TR><TD><B>convenios</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">PK id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">nome / ativo</FONT></TD></TR>
+    </TABLE>>];
+
+  agendamentos [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#e8f7ee">
+      <TR><TD><B>agendamentos</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">PK id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">FK usuario_id / dependente_id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">FK servico_id / unidade_id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">FK convenio_id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">data / horario / status</FONT></TD></TR>
+    </TABLE>>];
+
+  notificacoes [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#f7f7f7">
+      <TR><TD><B>notificacoes</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">PK id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">FK usuario_id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">titulo / texto / lida</FONT></TD></TR>
+    </TABLE>>];
+
+  suporte [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#f7f7f7">
+      <TR><TD><B>suporte_solicitacoes</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">PK id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">FK usuario_id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">assunto / mensagem / status</FONT></TD></TR>
+    </TABLE>>];
+
+  historico [label=<
+    <TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="5" BGCOLOR="#f7f7f7">
+      <TR><TD><B>historico_atendimentos</B></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">PK id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">FK usuario_id / dependente_id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">FK servico_id / unidade_id</FONT></TD></TR>
+      <TR><TD ALIGN="LEFT"><FONT POINT-SIZE="10">data / resultado</FONT></TD></TR>
+    </TABLE>>];
+
+  usuarios -> dependentes;
+  usuarios -> agendamentos;
+  dependentes -> agendamentos;
+  servicos -> agendamentos;
+  unidades -> agendamentos;
+  convenios -> agendamentos;
+  usuarios -> notificacoes;
+  usuarios -> suporte;
+  usuarios -> historico;
+  dependentes -> historico;
+  servicos -> historico;
+  unidades -> historico;
+}

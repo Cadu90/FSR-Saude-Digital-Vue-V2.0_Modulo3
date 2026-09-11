@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="FSR Saúde Digital: MVP acadêmico para agendamento e acompanhamento de serviços de saúde militar." />
+  <title>FSR Saúde Digital | 11º RC Mec</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+  <div id="app" v-cloak>
+    <header class="topbar" role="banner">
+      <div class="brand" aria-label="FSR Saúde Digital">
+        <div class="brand-mark" aria-hidden="true">FSR</div>
+        <div>
+          <strong>FSR Saúde Digital</strong>
+          <span>11º RC Mec • Ponta Porã-MS</span>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="icon-btn" type="button" @click="go('notificacoes')" aria-label="Abrir notificações">
+          🔔 <span>{{ unreadCount }}</span>
+        </button>
+        <button class="profile-chip" type="button" @click="go('perfil')" :aria-label="`Abrir perfil de ${user.name}`">CE</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <nav class="sidebar" aria-label="Navegação principal">
+        <button v-for="item in nav" :key="item.id" class="nav-item" :class="{active: currentPage===item.id}" type="button" @click="go(item.id)">
+          <span aria-hidden="true">{{ item.icon }}</span><span>{{ item.label }}</span>
+        </button>
+        <div class="sidebar-divider"></div>
+        <button class="nav-item" :class="{active: currentPage==='projeto'}" type="button" @click="go('projeto')">📚 <span>Projeto Integrador</span></button>
+        <button class="nav-item" :class="{active: currentPage==='requisitos'}" type="button" @click="go('requisitos')">✅ <span>Requisitos</span></button>
+        <button class="nav-item" :class="{active: currentPage==='sobre'}" type="button" @click="go('sobre')">ℹ️ <span>Sobre a plataforma</span></button>
+        <div class="sidebar-footer">MVP acadêmico • 2026</div>
+      </nav>
+
+      <main id="conteudo" class="content" tabindex="-1">
+        <section v-if="currentPage==='dashboard'" aria-labelledby="titulo-pagina">
+          <div class="page-head">
+            <div><h1 id="titulo-pagina">Olá, {{ user.firstName }}!</h1><p>Acompanhe seus serviços de saúde em um só lugar.</p></div>
+            <div class="actions"><button class="btn btn-primary" type="button" @click="go('agendamento')">+ Novo agendamento</button></div>
+          </div>
+          <div class="hero">
+            <div><h2>Saúde militar mais simples e organizada.</h2><p>Plataforma digital integrada para agendamento, acompanhamento, informações e suporte aos militares, dependentes e pensionistas.</p></div>
+            <div class="hero-actions"><button class="btn btn-primary" type="button" @click="go('agendamento')">Agendar consulta</button></div>
+          </div>
+          <div class="notice" style="margin-top:16px"><strong>Status da persistência:</strong> {{ apiMessage }}. Esta conexão é demonstrativa e utiliza apenas os dados acadêmicos locais.</div>
+          <div class="kpi-row" style="margin-top:16px">
+            <div class="card stat"><div><div class="label">Próximos atendimentos</div><div class="value">{{ appointments.length }}</div></div><span class="icon" aria-hidden="true">📅</span></div>
+            <div class="card stat"><div><div class="label">Histórico</div><div class="value">{{ history.length }}</div></div><span class="icon" aria-hidden="true">📄</span></div>
+            <div class="card stat"><div><div class="label">Dependentes</div><div class="value">{{ dependents.length }}</div></div><span class="icon" aria-hidden="true">👨‍👩‍👧</span></div>
+            <div class="card stat"><div><div class="label">Notificações não lidas</div><div class="value">{{ unreadCount }}</div></div><span class="icon" aria-hidden="true">🔔</span></div>
+          </div>
+          <div class="grid grid-2" style="margin-top:16px">
+            <div class="card"><h2 class="section-title">Próximo atendimento</h2><div v-if="appointments[0]" class="list-item"><div><div class="muted">{{ appointments[0].date }} • {{ appointments[0].time }}</div><h3>{{ appointments[0].type }}</h3><div class="muted">{{ appointments[0].unit }} • {{ appointments[0].patient }}</div></div><span class="pill" :class="statusClass(appointments[0].status)">{{ appointments[0].status }}</span></div><div v-else class="empty">Nenhum atendimento cadastrado.</div></div>
+            <div class="card"><h2 class="section-title">Acesso rápido</h2><div class="grid grid-2"><div v-for="q in quickLinks" :key="q.page" class="card feature"><div class="icon" aria-hidden="true">{{ q.icon }}</div><h3>{{ q.title }}</h3><p class="muted">{{ q.text }}</p><button class="btn btn-outline" type="button" @click="go(q.page)">Abrir</button></div></div></div>
+          </div>
+          <p class="footer-note">MVP acadêmico. Informações clínicas, nomes e horários exibidos nesta versão são demonstrativos e não representam dados reais do sistema institucional.</p>
+        </section>
+
+        <section v-else-if="currentPage==='agendamento'" aria-labelledby="titulo-pagina">
+          <div class="page-head"><div><h1 id="titulo-pagina">Agendamento</h1><p>Escolha o atendimento e o melhor horário para você ou seus dependentes.</p></div></div>
+          <div class="two-col">
+            <div class="card">
+              <form class="form" @submit.prevent="submitAppointment">
+                <div class="field"><label for="patient">Paciente</label><select id="patient" v-model="booking.patient"><option>Carlos Eduardo</option><option>Dependente demonstrativo</option></select></div>
+                <div class="field"><label for="type">Tipo de atendimento</label><select id="type" v-model="booking.type"><option>Clínica médica</option><option>Odontologia</option><option>Enfermagem</option><option>Consulta por convênio</option></select></div>
+                <div class="field"><label for="unit">Unidade</label><select id="unit" v-model="booking.unit"><option>Formação Sanitária Regimental</option><option>Rede credenciada FUSEX</option></select></div>
+                <div class="grid grid-2"><div class="field"><label for="date">Data</label><input id="date" type="date" v-model="booking.date" required></div><div class="field"><label for="time">Horário</label><select id="time" v-model="booking.time"><option>08:00</option><option>09:00</option><option>10:00</option><option>14:00</option><option>14:30</option><option>15:30</option></select></div></div>
+                <div class="notice success">Horários são demonstrativos neste MVP. Em produção, a disponibilidade deverá vir do sistema institucional.</div>
+                <button class="btn btn-primary" type="submit">Confirmar agendamento</button>
+              </form>
+            </div>
+            <div class="card"><h2 class="section-title">Regras e orientações</h2><div class="list"><div class="list-item"><div><h4>Cancelamento</h4><div class="muted">Utilize “Meus atendimentos” para cancelar ou remarcar.</div></div></div><div class="list-item"><div><h4>Notificações</h4><div class="muted">A plataforma deverá enviar lembretes de consultas e alterações.</div></div></div><div class="list-item"><div><h4>FUSEX</h4><div class="muted">A integração com convênios faz parte da evolução planejada.</div></div></div></div></div>
+          </div>
+        </section>
+
+        <section v-else-if="currentPage==='atendimentos'" aria-labelledby="titulo-pagina">
+          <div class="page-head"><div><h1 id="titulo-pagina">Meus atendimentos</h1><p>Consulte, acompanhe, cancele ou remarque seus agendamentos.</p></div><div class="actions"><button class="btn btn-primary" type="button" @click="go('agendamento')">+ Novo agendamento</button></div></div>
+          <div class="card table-wrap"><table class="table"><thead><tr><th>Data</th><th>Horário</th><th>Paciente</th><th>Atendimento</th><th>Unidade</th><th>Status</th><th>Ações</th></tr></thead><tbody><tr v-for="a in appointments" :key="a.id"><td>{{ a.date }}</td><td>{{ a.time }}</td><td>{{ a.patient }}</td><td>{{ a.type }}</td><td>{{ a.unit }}</td><td><span class="pill" :class="statusClass(a.status)">{{ a.status }}</span></td><td><button class="btn btn-outline" type="button" @click="requestCancel(a)">Cancelar</button></td></tr></tbody></table></div>
+        </section>
+
+        <section v-else-if="currentPage==='historico'" aria-labelledby="titulo-pagina">
+          <div class="page-head"><div><h1 id="titulo-pagina">Histórico</h1><p>Registro demonstrativo dos atendimentos concluídos.</p></div></div>
+          <div class="notice warning">Nesta versão acadêmica, o histórico é demonstrativo. A versão real exigiria integração autorizada com sistemas institucionais e regras de acesso.</div>
+          <div class="card" style="margin-top:16px"><div class="list"><div v-for="item in history" :key="item.date+item.type" class="list-item"><div><div class="muted">{{ item.date }}</div><h3>{{ item.type }}</h3><div class="muted">{{ item.unit }}</div></div><span class="pill pill-green">{{ item.result }}</span></div></div></div>
+        </section>
+
+        <section v-else-if="currentPage==='dependentes'" aria-labelledby="titulo-pagina">
+          <div class="page-head"><div><h1 id="titulo-pagina">Dependentes</h1><p>Cadastro demonstrativo para facilitar agendamentos.</p></div></div>
+          <div class="card"><div class="list"><div v-for="d in dependents" :key="d.name" class="list-item"><div><h3>{{ d.name }}</h3><div class="muted">{{ d.relation }}</div></div><span class="pill pill-green">{{ d.status }}</span></div></div></div>
+        </section>
+
+        <section v-else-if="currentPage==='servicos'" aria-labelledby="titulo-pagina"><div class="page-head"><div><h1 id="titulo-pagina">Serviços de saúde</h1><p>Informações demonstrativas sobre os serviços disponíveis.</p></div></div><div class="grid grid-3"><div v-for="s in services" :key="s.title" class="card feature"><div class="icon" aria-hidden="true">{{ s.icon }}</div><h3>{{ s.title }}</h3><p class="muted">{{ s.text }}</p></div></div></section>
+
+        <section v-else-if="currentPage==='unidades'" aria-labelledby="titulo-pagina"><div class="page-head"><div><h1 id="titulo-pagina">Unidades</h1><p>Locais demonstrativos para organização da rede de atendimento.</p></div></div><div class="grid grid-2"><div v-for="u in units" :key="u.name" class="card"><h3>{{ u.name }}</h3><p class="muted">{{ u.address }}</p><span class="badge">{{ u.type }}</span></div></div></section>
+
+        <section v-else-if="currentPage==='notificacoes'" aria-labelledby="titulo-pagina"><div class="page-head"><div><h1 id="titulo-pagina">Notificações</h1><p>Acompanhe lembretes e comunicados.</p></div><div class="actions"><button class="btn btn-outline" type="button" @click="markAllRead">Marcar todas como lidas</button></div></div><div class="card"><div class="list"><div v-for="(n,i) in notifications" :key="n.title+n.time+i" class="list-item"><div><div class="actions" style="align-items:center"><h3 style="margin:0">{{ n.title }}</h3><span v-if="!n.read" class="pill pill-blue">Nova</span></div><p>{{ n.text }}</p><div class="muted">{{ n.time }}</div></div><button class="btn btn-outline" type="button" @click="openNotification(n)">Abrir</button></div></div></div></section>
+
+        <section v-else-if="currentPage==='suporte'" aria-labelledby="titulo-pagina"><div class="page-head"><div><h1 id="titulo-pagina">Suporte e dúvidas</h1><p>Canal de atendimento e informações frequentes.</p></div></div><div class="grid grid-2"><div class="card"><h2 class="section-title">Perguntas frequentes</h2><div v-for="q in faq" :key="q[0]" class="question"><strong>{{ q[0] }}</strong><div class="muted" style="margin-top:5px">{{ q[1] }}</div></div></div><div class="card"><h2 class="section-title">Enviar uma dúvida</h2><form class="form" @submit.prevent="submitSupport"><div class="field"><label for="subject">Assunto</label><input id="subject" v-model="support.subject" required></div><div class="field"><label for="message">Mensagem</label><textarea id="message" rows="5" v-model="support.message" required></textarea></div><button class="btn btn-primary" type="submit">Enviar mensagem</button></form></div></div></section>
+
+        <section v-else-if="currentPage==='projeto'" aria-labelledby="titulo-pagina"><div class="page-head"><div><h1 id="titulo-pagina">Projeto Integrador</h1><p>Base acadêmica do projeto de saúde digital para o 11º RC Mec.</p></div></div><div class="grid grid-2"><div class="card"><h2>Identificação</h2><p><strong>Título:</strong> Criação de uma Plataforma Digital de Agendamento para a Formação Sanitária Regimental do 11º RC Mec.</p><p><strong>Local:</strong> Ponta Porã-MS</p><p><strong>Público-alvo:</strong> militares da ativa, reserva, familiares, pensionistas e dependentes.</p><p><strong>Curso:</strong> Tecnologia da Informação</p></div><div class="card"><h2>Problema central</h2><p>Como uma plataforma digital pode melhorar o acesso, a organização e a eficiência dos serviços de saúde destinados ao público militar?</p><div class="notice success">Problemas identificados: demora no atendimento, dificuldade de marcação, ausência de informações centralizadas, burocracia e limitações de comunicação.</div></div></div><div class="grid grid-3" style="margin-top:16px"><div v-for="step in steps" :key="step.title" class="card"><h3>{{ step.title }}</h3><p class="muted">{{ step.text }}</p></div></div></section>
+
+        <section v-else-if="currentPage==='requisitos'" aria-labelledby="titulo-pagina"><div class="page-head"><div><h1 id="titulo-pagina">Requisitos e escopo</h1><p>Base funcional do MVP e backlog de evolução.</p></div></div><div class="card"><h2>Requisitos funcionais</h2><div class="table-wrap"><table class="table"><thead><tr><th>ID</th><th>Requisito</th><th>Prioridade</th></tr></thead><tbody><tr v-for="r in requirements" :key="r.id"><td>{{ r.id }}</td><td>{{ r.text }}</td><td><span class="pill" :class="priorityClass(r.priority)">{{ r.priority }}</span></td></tr></tbody></table></div><h2 class="section-title">Requisitos não funcionais</h2><div class="grid grid-2"><div v-for="(x,i) in nfr" :key="x" class="list-item"><div><strong>RNF0{{ i+1 }}</strong><div class="muted">{{ x }}</div></div><span class="badge">Qualidade</span></div></div></div></section>
+
+        <section v-else-if="currentPage==='sobre'" aria-labelledby="titulo-pagina"><div class="page-head"><div><h1 id="titulo-pagina">Sobre a plataforma</h1><p>Objetivo, tecnologia e limites desta implementação.</p></div></div><div class="grid grid-2"><div class="card"><h2>Propósito</h2><p>Facilitar o acesso aos serviços de saúde militar, reduzindo burocracia, deslocamentos desnecessários e falhas de comunicação.</p><h2 class="section-title">Tecnologias</h2><div class="grid grid-2"><span v-for="t in technologies" :key="t" class="badge" style="padding:10px">{{ t }}</span></div></div><div class="card"><h2>Limitações</h2><ul><li>Sem conexão com bases institucionais.</li><li>Sem dados clínicos reais.</li><li>Integração FUSEX não ativa.</li><li>Autenticação apenas conceitual.</li><li>Geolocalização demonstrativa.</li><li>Uso real exige homologação, controles de acesso, LGPD e infraestrutura de produção.</li></ul></div></div></section>
+
+        <section v-else-if="currentPage==='perfil'" aria-labelledby="titulo-pagina"><div class="page-head"><div><h1 id="titulo-pagina">Meu perfil</h1><p>Dados demonstrativos do usuário atual.</p></div></div><div class="card"><div class="grid grid-2"><div><h2>{{ user.name }}</h2><p class="muted">Perfil: {{ user.profile }}</p><div class="notice">Em ambiente real, informações de identificação e vínculo deverão ser validadas por serviços institucionais.</div></div><div><div class="field"><label for="profile-name">Nome completo</label><input id="profile-name" :value="user.name" readonly></div><div class="field" style="margin-top:12px"><label for="profile-role">Perfil</label><input id="profile-role" :value="user.profile" readonly></div></div></div></div></section>
+
+        <div v-if="toast" class="toast" role="status" aria-live="polite">{{ toast }}</div>
+        <div v-if="modal.visible" class="modal" @click.self="closeModal">
+          <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <button class="modal-close" type="button" @click="closeModal" aria-label="Fechar">×</button>
+            <h2 id="modal-title">{{ modal.title }}</h2>
+            <p v-html="modal.body"></p>
+            <div v-if="modal.confirm" class="actions"><button class="btn btn-secondary" type="button" @click="closeModal">Voltar</button><button class="btn btn-danger" type="button" @click="modal.confirm()">Confirmar</button></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+  <script src="vue.global.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
